@@ -33,6 +33,39 @@ const registerUser = async (req, res) => {
         res.status(201).json({ message: 'User registered successfully',user:newUser });
     } catch (error) {
         console.error('Error registering user:', error);
+
+         if (error.name === 'ValidationError') {
+            const errors = {};
+            for (let key in error.errors) {
+                errors[key] = error.errors[key].message;
+            }
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors
+            });
+        }
+
+        if (error.code === 11000) {
+            const duplicateField = Object.keys(error.keyValue)[0];
+            const duplicateValue = error.keyValue[duplicateField];
+
+            return res.status(409).json({
+                success: false,
+                message: `${duplicateField.charAt(0).toUpperCase() + duplicateField.slice(1)} already exists`,
+                field: duplicateField,
+                value: duplicateValue
+            });
+        }
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid value for field "${error.path}"`,
+                field: error.path,
+                value: error.value
+            });
+        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };
