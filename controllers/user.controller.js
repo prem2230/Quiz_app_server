@@ -1,0 +1,129 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/user.model.js';
+
+
+const registerUser = async (req, res) => {
+    try {
+        const { email, username, password,role, number } = req.body;
+
+        const requiredFields = ['email', 'username', 'password', 'role', 'number'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        if (missingFields.length > 0) {
+            return res.status(400).json({ 
+                success: false, message: `Missing required fields`, requiredfields: missingFields });
+        }
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new User({
+            email,
+            username,
+            password: hashedPassword,
+            role,
+            number,
+        });
+
+        await newUser.save();
+
+        res.status(201).json({ message: 'User registered successfully',user:newUser });
+    } catch (error) {
+        console.error('Error registering user:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+const loginUser = async (req, res) => {
+    try{
+        const {email, username, number,password} = req.body;
+
+
+        const loginCredential = email || username || number;
+
+        if(!loginCredential || !password){
+            return res.status(400).json({
+                success:false,
+                message:'Please provide email or username or number and password'
+            });
+        }
+
+        let query = {};
+        let credentialType = '';
+        if(username){
+            query = {username};
+            credentialType = 'username';    
+        }
+        if(email) {
+            query = {email};
+            credentialType = 'email';
+        }
+        if(number) {
+            query = {number};
+            credentialType = 'number';
+        }
+
+        const user = await User.findOne(query);
+
+        if(!user){
+            let errorMessage = '';
+            switch(credentialType) {
+                case 'username':
+                    errorMessage = 'Username not found';
+                    break;
+                case 'email':
+                    errorMessage = 'Email not found';
+                    break;
+                case 'number':
+                    errorMessage = 'Number not found';
+                    break;
+                default:
+                    errorMessage = 'Invalid credentials';
+            }
+            return res.status(401).json({
+                success:false,
+                message:errorMessage,
+                field:credentialType
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password,user.password);
+        if(!isPasswordValid){
+            return res.status(401).json({
+                success:false,
+                message:'Incorrect password',
+                field:'password'
+            });
+        }
+
+        const token = jwt.sign(
+            { userId: user._id, 
+                role: user.role 
+            }, 
+            process.env.SECRET_KEY, 
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({
+            success:true,
+            message:'Login successful',
+            token,
+            user:{
+                id:user._id,
+                email:user.email,
+                username:user.username,
+                role:user.role,
+                number:user.number
+            }
+        });
+
+    }catch(error){
+        console.error('Error logging in user:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export  {registerUser,loginUser};
