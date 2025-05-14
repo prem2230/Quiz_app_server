@@ -31,10 +31,17 @@ const registerUser = async (req, res) => {
 
         await newUser.save();
 
+        const userData = {
+            id: newUser._id,
+            email: newUser.email,
+            username: newUser.username,
+            role: newUser.role,
+            number: newUser.number,
+        }
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            user: newUser
+            user: userData
         });
     } catch (error) {
         console.error('Error registering user:', error);
