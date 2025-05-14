@@ -40,14 +40,13 @@ const registerUser = async (req, res) => {
         console.error('Error registering user:', error);
 
         if (error.name === 'ValidationError') {
-            const errors = {};
+           const errorMessages = [];
             for (let key in error.errors) {
-                errors[key] = error.errors[key].message;
+                errorMessages.push(`${error.errors[key].message}`);
             }
             return res.status(400).json({
                 success: false,
-                message: 'Validation failed',
-                errors
+               message: `Validation failed. ${errorMessages.join('. ')}`,
             });
         }
 

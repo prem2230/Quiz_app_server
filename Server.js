@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import userRoutes from './routes/user.routes.js';
+import questionRoutes from './routes/question.routes.js';
 
 
 dotenv.config();
@@ -27,3 +28,4 @@ const connectDB = async () => {
 connectDB();
 
 app.use('/api/user',userRoutes);
+app.use('/api/question',questionRoutes);
