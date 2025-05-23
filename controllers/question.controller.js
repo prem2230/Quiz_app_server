@@ -86,7 +86,26 @@ const getAllQuestions = async (req, res) => {
                 message: 'Unauthorized access'
             });
         }
-        const questions = await Question.find();
+
+        const sortBy = req.query.sortBy || 'updatedAt';
+        const sortOrder = req.query.sortOrder || 'desc';
+        const search = req.query.search || '';
+
+        const sort = {};
+        sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
+
+        const searchQuery = search ? {
+            question: { $regex: search, $options: 'i' }
+        } : {};
+
+        const questions = await Question.find(searchQuery).sort(sort).skip(skip).limit(limit);
+
+        const total = await Question.countDocuments(searchQuery);
+
         if (!questions.length > 0) {
             return res.status(404).json({
                 success: false,
@@ -97,7 +116,13 @@ const getAllQuestions = async (req, res) => {
             success: true,
             message: 'Questions retrieved successfully',
             questions,
-            noOfQuestions : questions.length
+            noOfQuestions : questions.length,
+            pagination:{
+                total,
+                page,
+                pages: Math.ceil(total / limit),
+                hasMore: page < Math.ceil(total/limit)
+            }
         });
     } catch (error) {
         handleControllerError(error, res);
