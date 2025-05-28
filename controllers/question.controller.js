@@ -1,4 +1,5 @@
 import Question from "../models/question.model.js";
+import Quiz from "../models/quiz.model.js";
 
 const createQuestion = async (req, res) => {
     try {
@@ -216,7 +217,22 @@ const deleteQuestion = async (req, res) => {
                 message: 'You are not authorized to delete this question'
             });
         }
+
+        const linkedQuizzes = await Quiz.find({ questions: id });
+
+        if(linkedQuizzes.length > 0){
+            return res.status(400).json({
+                success: false,
+                message: 'Question is linked to a quiz. Please delete the quiz first',
+                quizzes: linkedQuizzes.map((quiz) =>({
+                    id: quiz._id,
+                    title: quiz.title,
+                }))
+            });
+    
+        }
         const deletedQuestion = await Question.findByIdAndDelete(id);
+        
         if (!deletedQuestion) {
             return res.status(404).json({
                 success: false,
