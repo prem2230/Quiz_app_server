@@ -116,9 +116,11 @@ const getAllQuizzes = async(req, res) =>{
         const total = await Quiz.countDocuments(searchQuery);
 
         if(!quizzes.length > 0){
-            return res.status(404).json({
-                success: false,
-                message: 'No quizzes found'
+            return res.status(200).json({
+                success: true,
+                message: 'No quizzes found',
+                quizzes: [],
+                noOfQuizzes: 0
             });
         }
 

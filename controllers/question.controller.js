@@ -107,9 +107,11 @@ const getAllQuestions = async (req, res) => {
         const total = await Question.countDocuments(searchQuery);
 
         if (!questions.length > 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No questions found'
+            return res.status(200).json({
+                success: true,
+                message: 'No questions found',
+                questions: [],
+                noOfQuestions : 0,
             });
         }
         res.status(200).json({
