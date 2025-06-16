@@ -5,6 +5,7 @@ import cors from "cors";
 import userRoutes from './routes/user.routes.js';
 import questionRoutes from './routes/question.routes.js';
 import quizRoutes from './routes/quiz.routes.js';
+import resultRoutes from './routes/result.routes.js';
 
 
 dotenv.config();
@@ -31,3 +32,4 @@ connectDB();
 app.use('/api/user',userRoutes);
 app.use('/api/question',questionRoutes);
 app.use('/api/quiz',quizRoutes);
+app.use('/api/exam',resultRoutes);

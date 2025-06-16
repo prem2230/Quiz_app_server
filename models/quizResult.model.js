@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const quizResultSchema = new mongoose.Schema({
+const ResultsSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -29,7 +29,6 @@ const quizResultSchema = new mongoose.Schema({
             selectedOption: {
                 text: String,
                 _id: String,
-                required: true
             },
             isCorrect: {
                 type: Boolean,
@@ -37,7 +36,7 @@ const quizResultSchema = new mongoose.Schema({
             },
             marks: {
                 type: Number,
-                default: 0
+                default: 0,
             }
         }],
         score:{
@@ -63,8 +62,8 @@ const quizResultSchema = new mongoose.Schema({
     }]
 });
 
-quizResultSchema.index({ userId: 1, "quizResults.quizId": 1 });
+ResultsSchema.index({ userId: 1, "quizResults.quizId": 1 });
 
-const QuizResult = mongoose.model('QuizResult', quizResultSchema);
+const Result = mongoose.model('Results', ResultsSchema);
 
-export default QuizResult;
+export default Result;
